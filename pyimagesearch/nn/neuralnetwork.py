@@ -63,3 +63,7 @@ class NeuralNetwork:
 
         # BACKPROPAGATION
         # the first phase of backpropagation is to compute the difference between our *prediction* (the final output activation in the activations list) and the true target value
+        error = A[-1] - y
+        
+        # from here, we need to apply the chain rule and build our list of deltas ‘D‘; the first entry in the deltas is simply the error of the output layer times the derivative of our activation function for the output value
+        D = [error *self.sigmoid_deriv(A[-1])]
