@@ -1,3 +1,2 @@
-from pyimagesearch.nn.neuralnetwork import NeuralNetwork
-nn = NeuralNetwork([2,2,1])
-print(nn)
+from sklearn.datasets.base import get_data_home 
+print (get_data_home())
