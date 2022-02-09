@@ -11,14 +11,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
-# construct the argument parser and parse the arguments
+# construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
+ap.add_argument("-m", "--model", required=True, help="path to output model")
 args =vars(ap.parse_args())
 
 # grab the list of images that we’ll be describing
 print("[INFO] loading images...")
-imagePaths =list(paths.list_images(args[ "dataset"]))
+imagePaths =list(paths.list_images(args["dataset"]))
 
 # initialize the image preprocessors
 sp = SimplePreprocessor(32,32)
@@ -39,16 +40,20 @@ testY = LabelBinarizer().fit_transform(testY)
 # initialize the optimizer and model
 print("[INFO] compiling model...")
 model = ShallowNet.build(width=32, height=32, depth=3, classes=3)
-model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 # train the network
 print("[INFO] training network...")
 H = model.fit(trainX, trainY, validation_data=(testX, testY), batch_size=32, epochs=100, verbose=1)
 
+# save the network to disk
+print("[INFO] serializing network...")
+model.save(args["model"])
+
 # evaluate the network
 print("[INFO] evaluating network...")
 predictions = model.predict(testX, batch_size=32)
-print(classification_report(testY.argmax(axis=1),predictions.argmax(axis=1),target_names=["cat", "dog", "panda"]))
+print(classification_report(testY.argmax(axis=1), predictions.argmax(axis=1), target_names=["cat", "dog", "panda"]))
 
 # plot the training loss and accuracy
 plt.style.use("ggplot")
