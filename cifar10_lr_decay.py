@@ -6,11 +6,24 @@ matplotlib.use("Agg")
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import classification_report
 from pyimagesearch.nn.conv.minivggnet import MiniVGGNet
-from keras.optimizers import gradient_descent_v2
+from keras.callbacks import LearningRateScheduler
+from keras.optimizers import SGD
 from keras.datasets import cifar10
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+
+def step_decay(epoch):
+    # initialize the base initial learning rate, drop factor, and epochs to drop every
+    initAlpha =0.01
+    factor =0.25
+    dropEvery =5
+    
+    # compute learning rate for the current epoch
+    alpha = initAlpha * (factor ** np.floor((1+ epoch) / dropEvery))
+    
+    # return the learning rate
+    return float(alpha)
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -29,17 +42,18 @@ trainY = lb.fit_transform(trainY)
 testY = lb.transform(testY)
 
 # initialize the label names for the CIFAR-10 dataset
-labelNames = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+labelNames = ["airplane", "automobile", "bird", "cat", "deer","dog", "frog", "horse", "ship", "truck"]
+
+# define the set of callbacks to be passed to the model during training
+callbacks = [LearningRateScheduler(step_decay)]
 
 # initialize the optimizer and model
-print("[INFO] compiling model...")
-#opt = gradient_descent_v2.SGD(lr=0.01, decay=0.01/40, momentum=0.9, nesterov=True)
-model = MiniVGGNet.build(width=32, height=32, depth=3, classes=10)
-model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+opt = SGD(lr=0.01, momentum=0.9, nesterov=True)
+model = MiniVGGNet.build(width=32, height=32, depth=3,classes=10)
+model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
 
 # train the network
-print("[INFO] training network...")
-H = model.fit(trainX, trainY, validation_data=(testX, testY), batch_size=64, epochs=40, verbose=1)
+H = model.fit(trainX, trainY, validation_data=(testX, testY),batch_size=64, epochs=40, callbacks=callbacks, verbose=1)
 
 # evaluate the network
 print("[INFO] evaluating network...")
@@ -49,10 +63,10 @@ print(classification_report(testY.argmax(axis=1), predictions.argmax(axis=1), ta
 # plot the training loss and accuracy
 plt.style.use("ggplot")
 plt.figure()
-plt.plot(np.arange(0,40), H.history[ "loss"], label="train_loss")
-plt.plot(np.arange(0,40), H.history[ "val_loss"], label="val_loss")
+plt.plot(np.arange(0,40), H.history["loss"], label="train_loss")
+plt.plot(np.arange(0,40), H.history["val_loss"], label="val_loss")
 plt.plot(np.arange(0,40), H.history["acc"], label="train_acc")
-plt.plot(np.arange(0,40), H.history[ "val_acc"], label="val_acc")
+plt.plot(np.arange(0,40), H.history["val_acc"], label="val_acc")
 plt.title("Training Loss and Accuracy on CIFAR-10")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")

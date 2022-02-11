@@ -1,2 +1,2 @@
-from sklearn.datasets.base import get_data_home 
-print (get_data_home())
+from tensorflow.python.client import device_lib
+print(device_lib.list_local_devices())
