@@ -31,3 +31,7 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 fname = os.path.sep.join([args["weights"], "weights-{epoch:03d}-{val_loss:.4f}.hdf5"])
 checkpoint = ModelCheckpoint(fname, monitor="val_loss", mode="min", save_best_only=True, verbose=1)
 callbacks = [checkpoint]
+
+# train the network
+print("[INFO] training network...")
+H = model.fit(trainX, trainY, validation_data=(testX, testY), batch_size=64, epochs=40, callbacks=callbacks, verbose=2)
